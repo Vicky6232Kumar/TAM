@@ -1,0 +1,31 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Logs and debugging files
+logs/
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE/editor settings
+.vscode/
+.idea/
+
+# Ignore temporary and test data files
+*.tmp
+*.bak
+
+# Ignore specific Excel files if needed (uncomment if applicable)
+# temp_data.xlsx
+# backup_*.xlsx
