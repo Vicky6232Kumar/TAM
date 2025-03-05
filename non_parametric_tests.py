@@ -1,0 +1,87 @@
+import pandas as pd
+import scipy.stats as stats
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+import pingouin as pg
+
+# Mann-Whitney U-Test
+def mann_whitney_u_test(df, categorical_var, target_variable, dataset_name):
+    """
+    Performs Mann-Whitney U Test for a categorical independent variable.
+
+    Parameters:
+    df (DataFrame): The dataset (original).
+    categorical_var (str): The independent variable (e.g., "Gender").
+    target_variable (str): The dependent variable (e.g., "Acceptance_Score").
+    dataset_name (str): Name of the dataset for printing results.
+
+    Returns:
+    float: p-value of the Mann-Whitney U test.
+    """
+    groups = df[categorical_var].unique()
+    if len(groups) != 2:
+        print(f"❌ Mann-Whitney U Test Failed: {categorical_var} has more than 2 categories.")
+        return None
+
+    group1 = df[df[categorical_var] == groups[0]][target_variable]
+    group2 = df[df[categorical_var] == groups[1]][target_variable]
+
+    stat, p_value = stats.mannwhitneyu(group1, group2)
+    print(f"✅ Mann-Whitney U Test for {dataset_name} Data: p = {p_value:.5f} -> {'Significant' if p_value < 0.05 else 'Not Significant'}")
+    return p_value
+
+# Kruskal-Wallis Test (Non-Parametric Alternative)
+def kruskal_wallis(df, categorical_var, target_variable, dataset_name):
+    """
+    Performs Kruskal-Wallis Test for a categorical independent variable.
+
+    Parameters:
+    df (DataFrame): The dataset (original or perceived).
+    categorical_var (str): The independent variable (e.g., "Gender", "Age_Group").
+    target_variable (str): The dependent variable (e.g., "Acceptance_Score").
+    dataset_name (str): Name of the dataset for printing results.
+    """
+    # Ensure categorical_var exists
+    if categorical_var not in df.columns:
+        raise KeyError(f"❌ Column '{categorical_var}' not found in {dataset_name} Data!")
+
+    # Ensure target_variable exists
+    if target_variable not in df.columns:
+        raise KeyError(f"❌ Column '{target_variable}' not found in {dataset_name} Data!")
+
+    groups = [df[df[categorical_var] == cat][target_variable] for cat in df[categorical_var].unique()]
+    kw_stat, p_value = stats.kruskal(*groups)
+    print(f"✅ Kruskal-Wallis Test for {dataset_name} Data (Factor: {categorical_var}): p = {p_value:.3f} -> {'Significant' if p_value < 0.05 else 'Not Significant'}")
+    return p_value
+
+def wilcoxon_test(df_original, df_perceived, target_variable):
+    """
+    Performs the Wilcoxon Signed-Rank Test to compare Original vs. Perceived Acceptance Scores.
+
+    Parameters:
+    df_original (DataFrame): Original data
+    df_perceived (DataFrame): Perceived data
+    target_variable (str): The dependent variable (e.g., "Acceptance_Score")
+
+    Returns:
+    None (prints results)
+    """
+    print("\nPerforming Wilcoxon Signed-Rank Test (Non-Parametric Alternative)...")
+
+    try:
+        # Wilcoxon Signed-Rank Test (Paired Data)
+        stat, p_value = stats.wilcoxon(df_original[target_variable], df_perceived[target_variable])
+        
+        print(f"\nWilcoxon Signed-Rank Test Results:")
+        print(f"W = {stat}, p = {p_value:.3f}")
+
+        # Interpretation
+        if p_value < 0.05:
+            print("✅ Significant difference between Original & Perceived Data.")
+        else:
+            print("❌ No significant difference between Original & Perceived Data.")
+
+    except ValueError as ve:
+        print(f"❌ Wilcoxon Test Failed: {ve}")
+        print("Skipping statistical test due to invalid conditions.")
+
