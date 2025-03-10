@@ -48,7 +48,7 @@ def check_normality(data, column, dataset_name):
         stat, p = stats.kstest(data[column], 'norm', args=(mean, std))  # KS Test for large samples
         test_used = "Kolmogorov-Smirnov"
 
-    print(f"✅ {test_used} Test for Normality on {column} column in {dataset_name} data: p = {p:.3f} -> {'Normal' if p > 0.05 else 'Not Normal'}")
+    print(f"✅ {test_used} Test for Normality on {column} column in {dataset_name} data: p = {p:.3f} -> {'Normal' if p > 0.1 else 'Not Normal'}")
     return p > 0.05  # Returns True if data is normal
 
 # Save updated data back to an Excel file
@@ -57,3 +57,15 @@ def save_updated_data(df_original, df_perceived, file_name="updated_data.xlsx"):
         df_original.to_excel(writer, sheet_name="Original Data", index=False)
         df_perceived.to_excel(writer, sheet_name="Perceived Data", index=False)
     print(f"✅ Updated Excel file saved as '{file_name}'")
+
+# mean and median 
+def compare_mean_median(df, categorical_var, target_variable, dataset_name):
+    """
+    Compares Mean & Median for each category in categorical_var.
+    """
+    print(f"\n📌 Mean & Median Comparison for {dataset_name} Data:")
+
+    summary_stats = df.groupby(categorical_var)[target_variable].agg(["mean", "median"])
+    print(summary_stats)
+
+    return summary_stats
