@@ -49,7 +49,7 @@ def ind_t_test(df, categorical_var, target_variable, dataset_name):
     # Perform Independent t-test
     t_stat, p_value = stats.ttest_ind(group1, group2, equal_var=equal_var)
 
-    print(f"✅ Independent t-test for {dataset_name} Data (Factor: {categorical_var}): p = {p_value:.5f} -> {'Significant' if p_value < 0.05 else 'Not Significant'}")
+    print(f"✅ Independent t-test for {dataset_name} Data (Factor: {categorical_var}): p = {p_value:.5f} -> {'Significant' if p_value < 0.1 else 'Not Significant'}")
 
     return p_value
 
@@ -71,7 +71,7 @@ def one_way_anova(df, categorical_var, target_variable, dataset_name):
     anova_table = sm.stats.anova_lm(model, typ=2)
     p_value = anova_table["PR(>F)"].iloc[0] # p-value for the main factor
     # print(f"✅ One-Way ANOVA Results for {dataset_name} Data (Factor: {categorical_var}):\n", anova_table)
-    print(f"✅ One-Way ANOVA for {dataset_name} Data (Factor: {categorical_var}): p = {p_value:.3f} -> {'Significant' if p_value < 0.05 else 'Not Significant'}")
+    print(f"✅ One-Way ANOVA for {dataset_name} Data (Factor: {categorical_var}): p = {p_value:.3f} -> {'Significant' if p_value < 0.1 else 'Not Significant'}")
 
     # Extract p-value
 
@@ -83,7 +83,7 @@ def one_way_anova(df, categorical_var, target_variable, dataset_name):
     return p_value
 
 # Two-Way ANOVA (Corrected)
-def two_way_anova(df, categorical_vars, target_variable):
+def two_way_anova(df, categorical_vars, target_variable, dataset_name):
     """
     Performs Two-Way ANOVA for multiple categorical independent variables.
 
@@ -91,21 +91,23 @@ def two_way_anova(df, categorical_vars, target_variable):
     - df (DataFrame): The dataset (original).
     - categorical_vars (list): Independent variables (e.g., ["Gender", "age group"]).
     - target_variable (str): The dependent variable (e.g., "Acceptance_Score").
+    - dataset_name (str): Name of the dataset for printing results.
 
     Returns:
     - dict: Dictionary of p-values for main effects & interaction effect.
     """
+
     formula = f"{target_variable} ~ C({categorical_vars[0]}) + C({categorical_vars[1]}) + C({categorical_vars[0]}):C({categorical_vars[1]})"
     model = smf.ols(formula, data=df).fit()
     anova_table = sm.stats.anova_lm(model, typ=2)
 
-    print("✅ Two-Way ANOVA Results:\n", anova_table)
+    print(f"✅ Two-Way ANOVA Results for {dataset_name} Data:\n", anova_table)
 
-    # Extract p-values for each factor
+    # Extract p-values for main effects and interaction
     p_values = {
-        categorical_vars[0]: anova_table["PR(>F)"][0],  # p-value for Factor 1 (e.g., Gender)
-        categorical_vars[1]: anova_table["PR(>F)"][1],  # p-value for Factor 2 (e.g., Age Group)
-        "Interaction": anova_table["PR(>F)"][2]  # p-value for Interaction Effect
+        categorical_vars[0]: anova_table["PR(>F)"].iloc[0],  # p-value for Factor 1 (e.g., Gender)
+        categorical_vars[1]: anova_table["PR(>F)"].iloc[1],  # p-value for Factor 2 (e.g., Age Group)
+        "Interaction": anova_table["PR(>F)"].iloc[2]  # p-value for Interaction Effect
     }
 
     # Compute Effect Sizes (Partial Eta Squared)
