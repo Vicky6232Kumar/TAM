@@ -58,9 +58,9 @@ else:
     p_values["Krushal Wills (Original)"] = kruskal_wallis(df_original, categorical_variable, target_variable, "Original")
 
 if is_normal_perceived:
-    p_values["one-way anova (Original)"] = one_way_anova(df_perceived,categorical_variable,  target_variable, "Perceived")
+    p_values["one-way anova (Perceived)"] = one_way_anova(df_perceived,categorical_variable,  target_variable, "Perceived")
 else:
-    p_values["Krushal Wills (Original)"] = kruskal_wallis(df_perceived, categorical_variable,  target_variable, "Perceived")
+    p_values["Krushal Wills (Perceived)"] = kruskal_wallis(df_perceived, categorical_variable,  target_variable, "Perceived")
 
 print("\n📊 **P-Value Results Summary:**")
 for test, p_val in p_values.items():
