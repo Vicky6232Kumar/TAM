@@ -196,7 +196,7 @@ def plot_mean_median_with_error_bars(df, categorical_var, target_variable, datas
     ]
 
     # Bar positions
-    x_pos = [0, 1, 3, 4]  # Ensures spacing between Mean & Median sections
+    x_pos = [0, 0.8, 2.8, 3.6]  # Ensures spacing between Mean & Median sections
 
     # Define bar colors
     colors = ["#3498db", "#e74c3c", "#3498db", "#e74c3c"]  # Blue for Male, Red for Female
