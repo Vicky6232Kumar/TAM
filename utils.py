@@ -4,6 +4,8 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import pingouin as pg
 import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 reliability_vars = ['ADAS "Safe" rating (1-7) TAM', 'ADAS "Desirable" rating (1-7) TAM', 'ADAS "Pleasant" rating (1-7) TAM', 'ADAS "Comfortable" rating (1-7) TAM']
 
@@ -106,3 +108,42 @@ def count_combinations(df, cat1_var, cat2_var, dataset_name):
     }
 
     return result
+
+#this function plot the point graph with error bars
+def plot_interaction_effect(df, cat1_var, cat2_var, target_var, dataset_name, plot_name):
+    """
+    Creates an interaction plot for cat1_var and cat2_var on Acceptance Score.
+    Handles missing values (NaN) to avoid KeyErrors in Seaborn's pointplot.
+    """
+    # print(f"\n🔍 Unique values in '{cat1_var}' ({dataset_name}): {df[cat1_var].unique()}")
+    # print(f"🔍 Unique values in '{cat2_var}' ({dataset_name}): {df[cat2_var].unique()}")
+
+    # Step 1: Remove spaces and convert to string (ensures category consistency)
+    df[cat1_var] = df[cat1_var].astype(str).str.strip()
+    df[cat2_var] = df[cat2_var].astype(str).str.strip()
+
+    # Step 2: Fill missing values (NaN) with "Unknown" to avoid KeyErrors
+    df[cat2_var] = df[cat2_var].fillna("Unknown")
+    df[cat1_var] = df[cat1_var].fillna("Unknown")
+
+    # Step 3: Drop rows where the target variable is NaN (ensures valid plotting)
+    df = df.dropna(subset=[target_var])
+
+    # Step 4: Plot
+    plt.figure(figsize=(8, 6))
+    try:
+        sns.pointplot(
+            x=cat1_var, y=target_var, hue=cat2_var, data=df,
+            capsize=0.1, dodge=True, markers=["o", "s", "d"], linestyles=["-", "--", ":"]
+        )
+        plt.title(f"Interaction Effect: {cat1_var} & {cat2_var} on {target_var} ({dataset_name})")
+        plt.xlabel(cat1_var)
+        plt.ylabel(target_var)
+        plt.legend(title=cat2_var)
+        plt.grid(True)
+        plt.savefig(f"plot/{plot_name}.png")
+        print(f"\n✅ Plot saved as 'plot/{plot_name}.png'")
+
+    except KeyError as e:
+        print(f"\n❌ KeyError: {e}")
+        print("🔹 Possible causes: Category missing or incorrectly formatted.")
