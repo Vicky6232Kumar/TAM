@@ -13,6 +13,9 @@ print("9 - Effect of Age x Drving Experience on ADAS (Both Original & Perceived 
 print("10 - Effect of Gender x Crash Experience on ADAS (Both Original & Perceived Data)")
 print("11 - Effect of Gender x Driver Education on ADAS (Both Original & Perceived Data)")
 print("12 - Effect of Gender x Driving Experience on ADAS (Both Original & Perceived Data)")
+print("13 - Effect of Driving Experience x Crash Experience on ADAS (Both Original & Perceived Data)")
+print("14 - Effect of Driving Experience x Driver Education on ADAS (Both Original & Perceived Data)")
+print("15 - Effect of Driver Education x Crash Experience on ADAS (Both Original & Perceived Data)")
 os.makedirs("plot", exist_ok=True)
 
 choice = input("\nEnter your choice: ")
@@ -41,5 +44,11 @@ elif choice == "11":
     os.system("python3 gender_education_effect_analysis.py")
 elif choice == "12":
     os.system("python3 gender_driving_effect_analysis.py")
+elif choice == "13":
+    os.system("python3 driving_crash_effect_analysis.py")
+elif choice == "14":
+    os.system("python3 driving_education_effect_analysis.py")
+elif choice == "15":
+    os.system("python3 education_crash_effect_analysis.py")
 else:
     print("Invalid choice! Please run the script again.")
