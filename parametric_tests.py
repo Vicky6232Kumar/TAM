@@ -42,7 +42,7 @@ def ind_t_test(df, categorical_var, target_variable, dataset_name):
 
     # Check Homogeneity of Variance (Levene’s Test)
     stat, p_var = stats.levene(group1, group2)
-    equal_var = p_var > 0.05  # True if variances are equal
+    equal_var = p_var > 0.1  # True if variances are equal
 
     print(f"✅ Levene’s Test for {dataset_name} Data: p = {p_var:.5f} -> {'Equal Variance Assumed' if equal_var else 'Unequal Variance'}")
 
@@ -97,11 +97,12 @@ def two_way_anova(df, categorical_vars, target_variable, dataset_name):
     - dict: Dictionary of p-values for main effects & interaction effect.
     """
 
-    formula = f"{target_variable} ~ C({categorical_vars[0]}) + C({categorical_vars[1]}) + C({categorical_vars[0]}):C({categorical_vars[1]})"
+    # formula = f"{target_variable} ~ C({categorical_vars[0]}) + C({categorical_vars[1]}) + C({categorical_vars[0]}):C({categorical_vars[1]})"
+    formula = f'Q("{target_variable}") ~ C(Q("{categorical_vars[0]}")) + C(Q("{categorical_vars[1]}")) + C(Q("{categorical_vars[0]}")):C(Q("{categorical_vars[1]}"))'
     model = smf.ols(formula, data=df).fit()
     anova_table = sm.stats.anova_lm(model, typ=2)
 
-    print(f"✅ Two-Way ANOVA Results for {dataset_name} Data:\n", anova_table)
+    print(f"\n✅ Two-Way ANOVA Results for {dataset_name} Data:\n", anova_table)
 
     # Extract p-values for main effects and interaction
     p_values = {
