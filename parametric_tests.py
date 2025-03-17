@@ -82,7 +82,7 @@ def one_way_anova(df, categorical_var, target_variable, dataset_name):
 
     return p_value
 
-# Two-Way ANOVA (Corrected)
+# Two-Way ANOVA
 def two_way_anova(df, categorical_vars, target_variable, dataset_name):
     """
     Performs Two-Way ANOVA for multiple categorical independent variables.
@@ -96,9 +96,13 @@ def two_way_anova(df, categorical_vars, target_variable, dataset_name):
     Returns:
     - dict: Dictionary of p-values for main effects & interaction effect.
     """
+    # Ensure categorical variables are properly encoded
+    for var in categorical_vars:
+        df[var] = df[var].astype("category")
 
-    # formula = f"{target_variable} ~ C({categorical_vars[0]}) + C({categorical_vars[1]}) + C({categorical_vars[0]}):C({categorical_vars[1]})"
-    formula = f'Q("{target_variable}") ~ C(Q("{categorical_vars[0]}")) + C(Q("{categorical_vars[1]}")) + C(Q("{categorical_vars[0]}")):C(Q("{categorical_vars[1]}"))'
+    # Define ANOVA formula with Treatment contrast (to avoid multicollinearity)
+    formula = f'Q("{target_variable}") ~ C(Q("{categorical_vars[0]}"), Treatment) + C(Q("{categorical_vars[1]}"), Treatment) + C(Q("{categorical_vars[0]}"), Treatment):C(Q("{categorical_vars[1]}"), Treatment)'
+
     model = smf.ols(formula, data=df).fit()
     anova_table = sm.stats.anova_lm(model, typ=2)
 
