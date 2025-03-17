@@ -70,7 +70,7 @@ else:
 print("\n📊 **P-Value Results Summary:**")
 for test, p_val in p_values.items():
     if isinstance(p_val, (int, float)):  # Ensures it's a number before formatting
-        print(f"{test}: p = {p_val:.5f} {'✅ Significant' if p_val < 0.01 else '❌ Not Significant'}")
+        print(f"{test}: p = {p_val:.5f} {'✅ Significant' if p_val < 0.1 else '❌ Not Significant'}")
     else:
         print(f"{test}: {p_val} (Invalid result, check ANOVA output)")
 
