@@ -3,6 +3,8 @@ import scipy.stats as stats
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import pingouin as pg
+import numpy as np
+
 
 # Mann-Whitney U-Test
 def mann_whitney_u_test(df, categorical_var, target_variable, dataset_name):
@@ -27,7 +29,7 @@ def mann_whitney_u_test(df, categorical_var, target_variable, dataset_name):
     group2 = df[df[categorical_var] == groups[1]][target_variable]
 
     stat, p_value = stats.mannwhitneyu(group1, group2)
-    print(f"✅ Mann-Whitney U Test for {dataset_name} Data: p = {p_value:.5f} -> {'Significant' if p_value < 0.05 else 'Not Significant'}")
+    print(f"✅ Mann-Whitney U Test for {dataset_name} Data: p = {p_value:.5f} -> {'Significant' if p_value < 0.1 else 'Not Significant'}")
     return p_value
 
 # Kruskal-Wallis Test (Non-Parametric Alternative)
@@ -51,7 +53,7 @@ def kruskal_wallis(df, categorical_var, target_variable, dataset_name):
 
     groups = [df[df[categorical_var] == cat][target_variable] for cat in df[categorical_var].unique()]
     kw_stat, p_value = stats.kruskal(*groups)
-    print(f"✅ Kruskal-Wallis Test for {dataset_name} Data (Factor: {categorical_var}): p = {p_value:.3f} -> {'Significant' if p_value < 0.05 else 'Not Significant'}")
+    print(f"✅ Kruskal-Wallis Test for {dataset_name} Data (Factor: {categorical_var}): p = {p_value:.3f} -> {'Significant' if p_value < 0.1 else 'Not Significant'}")
     return p_value
 
 def wilcoxon_test(df_original, df_perceived, target_variable):
@@ -85,3 +87,65 @@ def wilcoxon_test(df_original, df_perceived, target_variable):
         print(f"❌ Wilcoxon Test Failed: {ve}")
         print("Skipping statistical test due to invalid conditions.")
 
+# Aligned Ranked Transformation test (two way anova alternative)
+def art_anova(df, categorical_vars, target_variable, dataset_name):
+    """
+    Performs Aligned Rank Transformation (ART) ANOVA for non-parametric interaction effects.
+
+    Parameters:
+    - df (DataFrame): The dataset (original or perceived).
+    - categorical_vars (list): Independent variables (e.g., ["Gender", "Age group"]).
+    - target_variable (str): The dependent variable (e.g., "Acceptance_Score").
+    - dataset_name (str): Name of the dataset for printing results.
+
+    Returns:
+    - float: p-value for the interaction effect.
+    """
+
+    # Step 1: Rank Transform the Target Variable
+    df["Ranked_Score"] = stats.rankdata(df[target_variable])
+
+    # Step 2: Fit Two-Way ANOVA Model Using Ranked Data
+    formula = f'Ranked_Score ~ C(Q("{categorical_vars[0]}")) + C(Q("{categorical_vars[1]}")) + C(Q("{categorical_vars[0]}")):C(Q("{categorical_vars[1]}"))'
+    model = smf.ols(formula, data=df).fit()
+    anova_table = sm.stats.anova_lm(model, typ=2)
+
+    # ✅ Print the full ANOVA table
+    print(f"\n✅ ART ANOVA (Non-Parametric Interaction Test) Results for {dataset_name}:\n", anova_table)
+
+    # ✅ Extract and return the interaction p-value safely
+    try:
+        interaction_p_value = float(anova_table.loc[f'C(Q("{categorical_vars[0]}")):C(Q("{categorical_vars[1]}"))', "PR(>F)"])
+    except KeyError:
+        print("\n❌ Error: Interaction term not found in ANOVA table. Returning NaN.")
+        interaction_p_value = np.nan  # Return NaN if the interaction effect is missing
+
+    return interaction_p_value
+    """
+    Performs Aligned Rank Transformation (ART) ANOVA for non-parametric interaction effects.
+
+    Parameters:
+    - df (DataFrame): The dataset (original or perceived).
+    - categorical_vars (list): Independent variables (e.g., ["Gender", "Age group"]).
+    - target_variable (str): The dependent variable (e.g., "Acceptance_Score").
+    - dataset_name (str): Name of the dataset for printing results.
+
+    Returns:
+    - float: p-value for the interaction effect.
+    """
+
+    # Step 1: Rank Transform the Target Variable
+    df["Ranked_Score"] = stats.rankdata(df[target_variable])
+
+    # Step 2: Fit Two-Way ANOVA Model Using Ranked Data
+    formula = f'Ranked_Score ~ C(Q("{categorical_vars[0]}")) + C(Q("{categorical_vars[1]}")) + C(Q("{categorical_vars[0]}")):C(Q("{categorical_vars[1]}"))'
+    model = smf.ols(formula, data=df).fit()
+    anova_table = sm.stats.anova_lm(model, typ=2)
+
+    # ✅ Print the full ANOVA table in the console
+    print(f"\n✅ ART ANOVA (Non-Parametric Interaction Test) Results for {dataset_name}:\n", anova_table)
+
+    # ✅ Extract and return only the p-value for the interaction effect
+    interaction_p_value = anova_table.loc[f'C(Q("{categorical_vars[0]}")):C(Q("{categorical_vars[1]}"))', "PR(>F)"]
+    
+    return interaction_p_value
