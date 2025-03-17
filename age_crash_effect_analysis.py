@@ -1,7 +1,7 @@
-import seaborn as sns
-import matplotlib.pyplot as plt
+# This code is for analysis for effect of interaction of age group and crash experience on technology(adas)
+
 from utils import (
-    load_data, check_reliability, check_normality, calculate_acceptance_score, save_updated_data, count_combinations
+    load_data, check_reliability, check_normality, calculate_acceptance_score, save_updated_data, count_combinations,plot_interaction_effect
 )
 from parametric_tests import two_way_anova
 from non_parametric_tests import art_anova
@@ -75,29 +75,13 @@ for test, p_val in p_values.items():
         print(f"{test}: {p_val} (Invalid result, check ANOVA output)")
 
 
-
-def plot_interaction_effect(df, age_var, crash_var, target_var, dataset_name):
-    """
-    Creates an interaction plot for Age Group and Gender on Acceptance Score.
-    """
-    plt.figure(figsize=(8, 6))
-    sns.pointplot(x=age_var, y=target_var, hue=crash_var, data=df, capsize=0.1, dodge=True, markers=["o", "s"], linestyles=["-", "--"])
-    plt.title(f"Interaction Effect: {age_var} & {crash_var} on {target_var} ({dataset_name})")
-    plt.xlabel(age_var)
-    plt.ylabel(target_var)
-    plt.legend(title=crash_var)
-    plt.grid(True)
-    plt.savefig(f"plot/{dataset_name.lower()}_interaction_age_crash.png")
-    print(f"\n✅ Plot saved as 'plot/{dataset_name.lower()}_interaction_age_crash.png'")
-    # plt.show()
-
 # Generate interaction effect plots
-plot_interaction_effect(df_original, "age group", "Crash experience", target_variable, "Original")
-plot_interaction_effect(df_perceived, "age group", "Crash experience", target_variable, "Perceived")
+plot_interaction_effect(df_original, "age group", "Crash experience", target_variable, "Original", "original_interaction_age_crash")
+plot_interaction_effect(df_perceived, "age group", "Crash experience", target_variable, "Perceived", "perceived_interaction_age_crash")
 
 # Count for Original Data and Percieved Data
-count_original = count_combinations(df_original, "Crash experience", "age group", "Original")
-count_perceived = count_combinations(df_perceived, "Crash experience" , "age group", "Perceived")
+count_original = count_combinations(df_original, "age group", "Crash experience",  "Original")
+count_perceived = count_combinations(df_perceived, "age group", "Crash experience" ,  "Perceived")
 
 # fig, axes = plt.subplots(2, 2, figsize=(12, 8))
 
