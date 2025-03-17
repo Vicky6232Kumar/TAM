@@ -69,3 +69,40 @@ def compare_mean_median(df, categorical_var, target_variable, dataset_name):
     print(summary_stats)
 
     return summary_stats
+
+#this function count occurrences of all combination
+def count_combinations(df, cat1_var, cat2_var, dataset_name):
+    """
+    Counts occurrences of each category in Age Group & Gender.
+
+    Parameters:
+    - df (DataFrame): The dataset (original or perceived).
+    - age_var (str): Column name for Age Group (e.g., "age group").
+    - gender_var (str): Column name for Gender (e.g., "Gender").
+    - dataset_name (str): Name of the dataset for printing.
+
+    Returns:
+    - dict: Dictionary of category counts.
+    """
+    print(f"\n📊 **Category Counts for {dataset_name} Data:**\n")
+
+    # Count total occurrences of each gender
+    cat1_counts = df[cat1_var].value_counts()
+    print(f"✅ {cat1_var} counts:\n{cat1_counts}\n")
+
+    # Count total occurrences of each age group
+    cat1_counts = df[cat2_var].value_counts()
+    print(f"✅ {cat2_var} counts:\n{cat1_counts}\n")
+
+    # Count occurrences of each gender within each age group
+    cat1_cat2_counts = df.groupby([cat1_var, cat2_var]).size().unstack()
+    print(f"✅ {cat1_var} x {cat2_var} counts:\n{cat1_cat2_counts}\n")
+
+    # Convert to dictionary
+    result = {
+        "{cat1_var} counts": cat1_counts.to_dict(),
+        "{cat2_var} counts": cat1_counts.to_dict(),
+        "{cat1_var} x {cat2_var} counts": cat1_cat2_counts.to_dict()
+    }
+
+    return result
