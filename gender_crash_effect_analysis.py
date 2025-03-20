@@ -1,7 +1,7 @@
-import seaborn as sns
-import matplotlib.pyplot as plt
+# This code is for analysis for effect of interaction of gender and crash experience on technology(adas)
+
 from utils import (
-    load_data, check_reliability, check_normality, calculate_acceptance_score, save_updated_data, count_combinations, plot_interaction_effect
+    load_data, check_reliability, check_normality, calculate_acceptance_score, save_updated_data, count_combinations, plot_interaction_effect, compute_summary_stats
 )
 from parametric_tests import two_way_anova
 from non_parametric_tests import art_anova
@@ -76,12 +76,33 @@ for test, p_val in p_values.items():
 
 
 # Generate interaction effect plots
-plot_interaction_effect(df_original, "Gender", "Crash experience", target_variable, "Original", "original_interaction_gender_crash")
-plot_interaction_effect(df_perceived, "Gender", "Crash experience", target_variable, "Perceived", "perceived_interaction_gender_crash")
+plot_interaction_effect(df_original, categorical_vars[0], categorical_vars[1], target_variable, "Original", "original_interaction_gender_crash")
+plot_interaction_effect(df_perceived, categorical_vars[0], categorical_vars[1], target_variable, "Perceived", "perceived_interaction_gender_crash")
 
 # Count for Original Data and Percieved Data
-count_original = count_combinations(df_original, "Crash experience", "Gender", "Original")
-count_perceived = count_combinations(df_perceived, "Crash experience" , "Gender", "Perceived")
+count_original = count_combinations(df_original, categorical_vars[0], categorical_vars[1], "Original")
+count_perceived = count_combinations(df_perceived, categorical_vars[0], categorical_vars[1], "Perceived")
+
+# Compute summary stats for both datasets
+summary_original = compute_summary_stats(df_original, categorical_vars, target_variable)
+summary_perceived = compute_summary_stats(df_perceived, categorical_vars, target_variable)
+
+# Print Summary Stats
+print("\n📊 **Summary Statistics for Original Data:**")
+for var, stats in summary_original.items():
+    print(f"\n🔹 {var}:")
+    if isinstance(stats, dict):  # Handling interaction effect separately
+        print(f"   Mean: {stats['Mean']:.2f}, Median: {stats['Median']:.2f}, Std: {stats['Std']:.2f}")
+    else:
+        print(stats.to_string())
+
+print("\n📊 **Summary Statistics for Perceived Data:**")
+for var, stats in summary_perceived.items():
+    print(f"\n🔹 {var}:")
+    if isinstance(stats, dict):  # Handling interaction effect separately
+        print(f"   Mean: {stats['Mean']:.2f}, Median: {stats['Median']:.2f}, Std: {stats['Std']:.2f}")
+    else:
+        print(stats.to_string())
 
 # fig, axes = plt.subplots(2, 2, figsize=(12, 8))
 
