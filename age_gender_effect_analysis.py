@@ -4,7 +4,7 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
 from utils import (
-    load_data, check_reliability, check_normality, calculate_acceptance_score, save_updated_data, count_combinations
+    load_data, check_reliability, check_normality, calculate_acceptance_score, save_updated_data, plot_interaction_effect, compute_summary_stats, count_combinations
 )
 from parametric_tests import two_way_anova
 from non_parametric_tests import art_anova
@@ -73,35 +73,40 @@ else:
 print("\n📊 **P-Value Results Summary:**")
 for test, p_val in p_values.items():
     if isinstance(p_val, (int, float)):  # Ensures it's a number before formatting
-        print(f"{test}: p = {p_val:.5f} {'Significant' if p_val < 0.01 else '❌ Not Significant'}")
+        print(f"{test}: p = {p_val:.5f} {'Significant' if p_val < 0.1 else '❌ Not Significant'}")
     else:
         print(f"{test}: {p_val} (Invalid result, check ANOVA output)")
 
-
-
-def plot_interaction_effect(df, age_var, gender_var, target_var, dataset_name):
-    """
-    Creates an interaction plot for Age Group and Gender on Acceptance Score.
-    """
-    plt.figure(figsize=(8, 6))
-    sns.pointplot(x=age_var, y=target_var, hue=gender_var, data=df, capsize=0.1, dodge=True, markers=["o", "s"], linestyles=["-", "--"])
-    plt.title(f"Interaction Effect: {age_var} & {gender_var} on {target_var} ({dataset_name})")
-    plt.xlabel(age_var)
-    plt.ylabel(target_var)
-    plt.legend(title=gender_var)
-    plt.grid(True)
-    plt.savefig(f"plot/{dataset_name.lower()}_interaction_age_gender.png")
-    print(f"\n✅ Plot saved as 'plot/{dataset_name.lower()}_interaction_age_gender.png'")
-    plt.show()
-
 # Generate interaction effect plots
-plot_interaction_effect(df_original, "age group", "Gender", target_variable, "Original")
-plot_interaction_effect(df_perceived, "age group", "Gender", target_variable, "Perceived")
+plot_interaction_effect(df_original, "age group", "Gender", target_variable, "Original", 'original_interaction_age_gender')
+plot_interaction_effect(df_perceived, "age group", "Gender", target_variable, "Perceived", 'perceived_interaction_age_gender')
 
 # Count for Original Data and Percieved Data
 count_original = count_combinations(df_original, "Gender", "age group", "Original")
 count_perceived = count_combinations(df_perceived, "Gender" , "age group", "Perceived")
 
+# Compute summary stats for both datasets
+summary_original = compute_summary_stats(df_original, categorical_vars, target_variable)
+summary_perceived = compute_summary_stats(df_perceived, categorical_vars, target_variable)
+
+# Print Summary Stats
+print("\n📊 **Summary Statistics for Original Data:**")
+for var, stats in summary_original.items():
+    print(f"\n🔹 {var}:")
+    if isinstance(stats, dict):  # Handling interaction effect separately
+        print(f"   Mean: {stats['Mean']:.2f}, Median: {stats['Median']:.2f}, Std: {stats['Std']:.2f}")
+    else:
+        print(stats.to_string())
+
+print("\n📊 **Summary Statistics for Perceived Data:**")
+for var, stats in summary_perceived.items():
+    print(f"\n🔹 {var}:")
+    if isinstance(stats, dict):  # Handling interaction effect separately
+        print(f"   Mean: {stats['Mean']:.2f}, Median: {stats['Median']:.2f}, Std: {stats['Std']:.2f}")
+    else:
+        print(stats.to_string())
+
+# box plot
 # fig, axes = plt.subplots(2, 2, figsize=(12, 8))
 
 # # Original Data Plots
