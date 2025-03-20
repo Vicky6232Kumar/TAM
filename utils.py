@@ -60,14 +60,14 @@ def save_updated_data(df_original, df_perceived, file_name="updated_data.xlsx"):
         df_perceived.to_excel(writer, sheet_name="Perceived Data", index=False)
     print(f"✅ Updated Excel file saved as '{file_name}'")
 
-# mean and median 
+# mean, median and std for individual catergorical variable 
 def compare_mean_median(df, categorical_var, target_variable, dataset_name):
     """
     Compares Mean & Median for each category in categorical_var.
     """
     print(f"\n📌 Mean & Median Comparison for {dataset_name} Data:")
 
-    summary_stats = df.groupby(categorical_var)[target_variable].agg(["mean", "median"])
+    summary_stats = df.groupby(categorical_var)[target_variable].agg(["mean", "median", "std"])
     print(summary_stats)
 
     return summary_stats
@@ -147,3 +147,75 @@ def plot_interaction_effect(df, cat1_var, cat2_var, target_var, dataset_name, pl
     except KeyError as e:
         print(f"\n❌ KeyError: {e}")
         print("🔹 Possible causes: Category missing or incorrectly formatted.")
+
+#this fucntion calculate the mean, median, std for categorial variables and their interaction(all possibility)
+# def compute_summary_stats(df, categorical_vars, target_variable):
+#     """
+#     Computes mean, median, and standard deviation for each categorical variable and their interaction.
+
+#     Parameters:
+#     - df (DataFrame): Dataset (original or perceived).
+#     - categorical_vars (list): List of categorical variables (e.g., ["Gender", "age group"]).
+#     - target_variable (str): The dependent variable (e.g., "Acceptance_Score").
+
+#     Returns:
+#     - DataFrame: Summary statistics for each categorical variable and their interaction.
+#     """
+#     summary_stats = {}
+
+#     # Compute stats for each categorical variable
+#     for var in categorical_vars:
+#         summary_stats[var] = df.groupby(var)[target_variable].agg(
+#             mean="mean",
+#             median="median",
+#             std="std",
+#             count="count"
+#         ).reset_index()
+    
+#     # Compute interaction effect
+#     interaction_var = f"{categorical_vars[0]} x {categorical_vars[1]}"
+#     df[interaction_var] = df[categorical_vars[0]].astype(str) + " & " + df[categorical_vars[1]].astype(str)
+
+#     summary_stats[interaction_var] = df.groupby(interaction_var)[target_variable].agg(
+#         mean="mean",
+#         median="median",
+#         std="std",
+#         count="count"
+#     ).reset_index()
+
+#     return summary_stats
+
+
+#this fucntion calculate the mean, median, std for categorial variables and their interaction(singled value)
+def compute_summary_stats(df, categorical_vars, target_variable):
+    """
+    Computes mean, median, and standard deviation for each categorical variable 
+    and a single value for their interaction.
+
+    Parameters:
+    - df (DataFrame): Dataset (original or perceived).
+    - categorical_vars (list): List of categorical variables (e.g., ["Gender", "age group"]).
+    - target_variable (str): The dependent variable (e.g., "Acceptance_Score").
+
+    Returns:
+    - dict: Summary statistics containing mean, median, and std for each category 
+            and a single value for interaction.
+    """
+    summary_stats = {}
+
+    # Compute stats for each categorical variable
+    for var in categorical_vars:
+        summary_stats[var] = df[target_variable].groupby(df[var]).agg(["mean", "median", "std"])
+
+    # Compute overall stats for the interaction effect
+    interaction_mean = df[target_variable].mean()
+    interaction_median = df[target_variable].median()
+    interaction_std = df[target_variable].std()
+
+    summary_stats["Interaction"] = {
+        "Mean": interaction_mean,
+        "Median": interaction_median,
+        "Std": interaction_std
+    }
+
+    return summary_stats
