@@ -1,9 +1,7 @@
 # This code is for analysis for effect of interaction of age group and driver education on technology(adas)
 
-import seaborn as sns
-import matplotlib.pyplot as plt
 from utils import (
-    load_data, check_reliability, check_normality, calculate_acceptance_score, save_updated_data, count_combinations
+    load_data, check_reliability, check_normality, calculate_acceptance_score, save_updated_data, count_combinations,plot_interaction_effect, compute_summary_stats
 )
 from parametric_tests import two_way_anova
 from non_parametric_tests import art_anova
@@ -66,55 +64,35 @@ else:
 print("\n📊 **P-Value Results Summary:**")
 for test, p_val in p_values.items():
     if isinstance(p_val, (int, float)):  # Ensures it's a number before formatting
-        print(f"{test}: p = {p_val:.5f} {'Significant' if p_val < 0.01 else '❌ Not Significant'}")
+        print(f"{test}: p = {p_val:.5f} {'✅ Significant' if p_val < 0.1 else '❌ Not Significant'}")
     else:
         print(f"{test}: {p_val} (Invalid result, check ANOVA output)")
 
-
-
-def plot_interaction_effect(df, age_var, education_var, target_var, dataset_name):
-    """
-    Creates an interaction plot for Age Group and Driver Education on Acceptance Score.
-    Handles missing values (NaN) to avoid KeyErrors in Seaborn's pointplot.
-    """
-    # print(f"\n🔍 Unique values in '{age_var}' ({dataset_name}): {df[age_var].unique()}")
-    # print(f"🔍 Unique values in '{education_var}' ({dataset_name}): {df[education_var].unique()}")
-
-    # Step 1: Remove spaces and convert to string (ensures category consistency)
-    df[age_var] = df[age_var].astype(str).str.strip()
-    df[education_var] = df[education_var].astype(str).str.strip()
-
-    # Step 2: Fill missing values (NaN) with "Unknown" to avoid KeyErrors
-    df[education_var] = df[education_var].fillna("Unknown")
-    df[age_var] = df[age_var].fillna("Unknown")
-
-    # Step 3: Drop rows where the target variable is NaN (ensures valid plotting)
-    df = df.dropna(subset=[target_var])
-
-    # Step 4: Plot
-    plt.figure(figsize=(8, 6))
-    try:
-        sns.pointplot(
-            x=age_var, y=target_var, hue=education_var, data=df,
-            capsize=0.1, dodge=True, markers=["o", "s", "d"], linestyles=["-", "--", ":"]
-        )
-        plt.title(f"Interaction Effect: {age_var} & {education_var} on {target_var} ({dataset_name})")
-        plt.xlabel(age_var)
-        plt.ylabel(target_var)
-        plt.legend(title=education_var)
-        plt.grid(True)
-        plt.savefig(f"plot/{dataset_name.lower()}_interaction_age_education.png")
-        print(f"\n✅ Plot saved as 'plot/{dataset_name.lower()}_interaction_age_education.png'")
-
-    except KeyError as e:
-        print(f"\n❌ KeyError: {e}")
-        print("🔹 Possible causes: Category missing or incorrectly formatted.")
-
 # Generate interaction effect plots
-plot_interaction_effect(df_original, "Driver education", "age group",  target_variable, "Original")
-plot_interaction_effect(df_perceived, "Driver education", "age group",  target_variable, "Perceived")
+plot_interaction_effect(df_original, categorical_vars[0], categorical_vars[1],  target_variable, "Original", "original_interaction_age_education")
+plot_interaction_effect(df_perceived, categorical_vars[0], categorical_vars[1],  target_variable, "Perceived", "perceived_interaction_age_education")
 
 # Count for Original Data and Percieved Data
-count_original = count_combinations(df_original, "Driver education", "age group", "Original")
-count_perceived = count_combinations(df_perceived, "Driver education" , "age group", "Perceived")
+count_original = count_combinations(df_original, categorical_vars[0], categorical_vars[1], "Original")
+count_perceived = count_combinations(df_perceived, categorical_vars[0], categorical_vars[1], "Perceived")
 
+# Compute summary stats for both datasets
+summary_original = compute_summary_stats(df_original, categorical_vars, target_variable)
+summary_perceived = compute_summary_stats(df_perceived, categorical_vars, target_variable)
+
+# Print Summary Stats
+print("\n📊 **Summary Statistics for Original Data:**")
+for var, stats in summary_original.items():
+    print(f"\n🔹 {var}:")
+    if isinstance(stats, dict):  # Handling interaction effect separately
+        print(f"   Mean: {stats['Mean']:.2f}, Median: {stats['Median']:.2f}, Std: {stats['Std']:.2f}")
+    else:
+        print(stats.to_string())
+
+print("\n📊 **Summary Statistics for Perceived Data:**")
+for var, stats in summary_perceived.items():
+    print(f"\n🔹 {var}:")
+    if isinstance(stats, dict):  # Handling interaction effect separately
+        print(f"   Mean: {stats['Mean']:.2f}, Median: {stats['Median']:.2f}, Std: {stats['Std']:.2f}")
+    else:
+        print(stats.to_string())
