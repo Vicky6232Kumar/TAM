@@ -1,4 +1,3 @@
-import pandas as pd
 import scipy.stats as stats
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
@@ -94,58 +93,36 @@ def art_anova(df, categorical_vars, target_variable, dataset_name):
 
     Parameters:
     - df (DataFrame): The dataset (original or perceived).
-    - categorical_vars (list): Independent variables (e.g., ["Gender", "Age group"]).
+    - categorical_vars (list): Independent variables (e.g., ["Gender", "Age group", "Education", ...]).
     - target_variable (str): The dependent variable (e.g., "Acceptance_Score").
     - dataset_name (str): Name of the dataset for printing results.
 
     Returns:
-    - float: p-value for the interaction effect.
+    - float: p-value for the highest-order interaction effect.
     """
 
     # Step 1: Rank Transform the Target Variable
     df["Ranked_Score"] = stats.rankdata(df[target_variable])
 
-    # Step 2: Fit Two-Way ANOVA Model Using Ranked Data
-    formula = f'Ranked_Score ~ C(Q("{categorical_vars[0]}")) + C(Q("{categorical_vars[1]}")) + C(Q("{categorical_vars[0]}")):C(Q("{categorical_vars[1]}"))'
+    # Step 2: Dynamically Construct ANOVA Formula
+    main_effects = " + ".join([f'C(Q("{var}"))' for var in categorical_vars])
+    interaction_term = ":".join([f'C(Q("{var}"))' for var in categorical_vars])  # Full N-way interaction
+
+    # Full ANOVA formula (Main Effects + Highest-Order Interaction)
+    formula = f'Ranked_Score ~ {main_effects} + {interaction_term}'
+
+    # Step 3: Fit ANOVA Model Using Ranked Data
     model = smf.ols(formula, data=df).fit()
     anova_table = sm.stats.anova_lm(model, typ=2)
 
-    # ✅ Print the full ANOVA table
+    # Print Full ANOVA Table
     print(f"\n✅ ART ANOVA (Non-Parametric Interaction Test) Results for {dataset_name}:\n", anova_table)
 
-    # ✅ Extract and return the interaction p-value safely
+    # Step 4: Extract and return the p-value for the highest-order interaction
     try:
-        interaction_p_value = float(anova_table.loc[f'C(Q("{categorical_vars[0]}")):C(Q("{categorical_vars[1]}"))', "PR(>F)"])
+        interaction_p_value = float(anova_table.loc[interaction_term, "PR(>F)"])
     except KeyError:
         print("\n❌ Error: Interaction term not found in ANOVA table. Returning NaN.")
         interaction_p_value = np.nan  # Return NaN if the interaction effect is missing
 
-    return interaction_p_value
-    """
-    Performs Aligned Rank Transformation (ART) ANOVA for non-parametric interaction effects.
-
-    Parameters:
-    - df (DataFrame): The dataset (original or perceived).
-    - categorical_vars (list): Independent variables (e.g., ["Gender", "Age group"]).
-    - target_variable (str): The dependent variable (e.g., "Acceptance_Score").
-    - dataset_name (str): Name of the dataset for printing results.
-
-    Returns:
-    - float: p-value for the interaction effect.
-    """
-
-    # Step 1: Rank Transform the Target Variable
-    df["Ranked_Score"] = stats.rankdata(df[target_variable])
-
-    # Step 2: Fit Two-Way ANOVA Model Using Ranked Data
-    formula = f'Ranked_Score ~ C(Q("{categorical_vars[0]}")) + C(Q("{categorical_vars[1]}")) + C(Q("{categorical_vars[0]}")):C(Q("{categorical_vars[1]}"))'
-    model = smf.ols(formula, data=df).fit()
-    anova_table = sm.stats.anova_lm(model, typ=2)
-
-    # ✅ Print the full ANOVA table in the console
-    print(f"\n✅ ART ANOVA (Non-Parametric Interaction Test) Results for {dataset_name}:\n", anova_table)
-
-    # ✅ Extract and return only the p-value for the interaction effect
-    interaction_p_value = anova_table.loc[f'C(Q("{categorical_vars[0]}")):C(Q("{categorical_vars[1]}"))', "PR(>F)"]
-    
     return interaction_p_value
