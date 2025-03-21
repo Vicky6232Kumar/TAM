@@ -1,5 +1,4 @@
 
-import pandas as pd
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import pingouin as pg
@@ -171,4 +170,43 @@ def two_way_mixed_anova(df_original, df_perceived, categorical_var, target_varia
     anova_mixed = pg.mixed_anova(dv='Score', between=categorical_var, within='Data_Type', subject='Participant_ID', data=df_mixed)
     print(f"✅ Two-Way Mixed ANOVA Results (Factor: {categorical_var}):\n", anova_mixed)
 
+# n-way anova
+def n_way_anova(df, categorical_vars, target_variable, dataset_name):
+    """
+    Performs N-Way ANOVA for multiple categorical independent variables.
 
+    Parameters:
+    - df (DataFrame): The dataset (original or perceived).
+    - categorical_vars (list): List of categorical independent variables.
+    - target_variable (str): The dependent variable.
+    - dataset_name (str): Name of the dataset for printing results.
+
+    Returns:
+    - dict: Dictionary of p-values for main effects & highest-order interaction effect.
+    """
+
+    # Construct categorical main effect terms
+    categorical_terms = " + ".join([f'C(Q("{var}"))' for var in categorical_vars])
+
+    # Construct a single 5-way interaction term
+    interaction_term = ":".join([f'C(Q("{var}"))' for var in categorical_vars])
+
+    # Full ANOVA formula (Main effects + 5-way interaction)
+    formula = f'Q("{target_variable}") ~ {categorical_terms} + {interaction_term}'
+    
+    # Fit the model
+    model = smf.ols(formula, data=df).fit()
+    
+    # Perform ANOVA
+    anova_table = sm.stats.anova_lm(model, typ=2)
+
+    print(f"\n✅ N-Way ANOVA Results for {dataset_name} Data:\n", anova_table)
+
+    # Extract only the 5-way interaction p-value
+    interaction_key = interaction_term  # Full interaction term string
+    if interaction_key in anova_table.index:
+        p_value_interaction = anova_table["PR(>F)"].loc[interaction_key]
+    else:
+        p_value_interaction = None  # Handle case if missing
+
+    return {"Interaction": p_value_interaction}
