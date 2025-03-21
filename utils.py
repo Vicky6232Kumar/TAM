@@ -205,12 +205,13 @@ def compute_summary_stats(df, categorical_vars, target_variable):
 
     # Compute stats for each categorical variable
     for var in categorical_vars:
-        summary_stats[var] = df[target_variable].groupby(df[var]).agg(["mean", "median", "std"])
+        summary_stats[var] = df.groupby(var)[target_variable].agg(["mean", "median", "std"])
 
-    # Compute overall stats for the interaction effect
-    interaction_mean = df[target_variable].mean()
-    interaction_median = df[target_variable].median()
-    interaction_std = df[target_variable].std()
+    # Compute a single value for the interaction effect
+    interaction_grouped = df.groupby(categorical_vars)[target_variable].mean()  # Grouped means
+    interaction_mean = interaction_grouped.mean()   # Mean of grouped means
+    interaction_median = np.median(interaction_grouped)  # Median of grouped means
+    interaction_std = interaction_grouped.std()    # Standard deviation of grouped means
 
     summary_stats["Interaction"] = {
         "Mean": interaction_mean,
