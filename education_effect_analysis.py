@@ -1,5 +1,5 @@
+# This code is for analysis of effect of Driver education on adas (technology)
 
-import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 from utils import load_data, check_reliability, check_normality,calculate_acceptance_score, save_updated_data, compare_mean_median
@@ -9,7 +9,6 @@ from non_parametric_tests import kruskal_wallis, mann_whitney_u_test
 # Define target variable
 target_variable = "Acceptance_Score"
 categorical_variable = "Driver education"
-
 
 # Step 1 - load Original & Perceived Data
 df_original, df_perceived = load_data("data sheet.xlsx")
@@ -182,15 +181,13 @@ def plot_driver_education(df, categorical_var, target_variable, dataset_name, ed
     plt.show()
 
 
-# ✅ Define consistent driver education labels
+# Define consistent driver education labels
 education_groups_original = {"> Bachelor's degree": "> Bachelor's degree", "Bachelor's degree": "Bachelor's degree"}
 education_groups_perceived = {"> Bachelor's degree": "> Bachelor's degree", "Bachelor's degree": "Bachelor's degree", "< Bachelor's degree": "< Bachelor's degree"}
 
-# ✅ Generate Driver Education Plots for Original Data
-plot_driver_education(df_original, "Driver education", "Acceptance_Score", "Original", education_groups_original)
-
-# ✅ Generate Driver Education Plots for Perceived Data
-plot_driver_education(df_perceived, "Driver education", "Acceptance_Score", "Perceived", education_groups_perceived)
+# Generate Driver Education Plots for Original Data and Perceived Data
+plot_driver_education(df_original, categorical_variable, target_variable, "Original", education_groups_original)
+plot_driver_education(df_perceived, categorical_variable, target_variable, "Perceived", education_groups_perceived)
 
 
 

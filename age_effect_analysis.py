@@ -1,5 +1,5 @@
+# This code is for analysis of effect of age on original and perceived data
 
-import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
 from utils import load_data, check_reliability, check_normality,calculate_acceptance_score, save_updated_data, compare_mean_median
@@ -9,7 +9,6 @@ from non_parametric_tests import kruskal_wallis, mann_whitney_u_test
 # Define target variable
 target_variable = "Acceptance_Score"
 categorical_variable = "age group"
-
 
 # Step 1 - load Original & Perceived Data
 df_original, df_perceived = load_data("data sheet.xlsx")
@@ -71,25 +70,6 @@ significant_perceived = any(p < 0.10 for key, p in p_values.items() if "Perceive
 
 mean_median_original = compare_mean_median(df_original, categorical_variable, target_variable, "Original")
 mean_median_perceived = compare_mean_median(df_perceived, categorical_variable, target_variable, "Perceived")
-
-# step 6 : now comparing original and percieved data by effect of age
-
-# Check if Two-Way Mixed ANOVA assumptions hold before running
-# if is_normal_original and is_normal_perceived:
-#     if df_original[categorical_variable].nunique() >= 2 and df_perceived[categorical_variable].nunique() >= 2:
-#         try:
-#             two_way_mixed_anova(df_original, df_perceived, categorical_variable, target_variable)
-#         except Exception as e:
-#             print(f"\n❌ Two-Way Mixed ANOVA failed due to error: {e}")
-#             print("Attempting Non-Parametric Test: Wilcoxon Signed-Rank Test")
-#             wilcoxon_test(df_original, df_perceived, target_variable)
-
-#     else:
-#         print("\nSkipping Two-Way Mixed ANOVA: Not enough unique groups in categorical variable.")
-# else:
-#     print("\nSkipping Two-Way Mixed ANOVA: Data is not normally distributed.")
-#     wilcoxon_test(df_original, df_perceived, target_variable)
-
 
 # visualization
 # fig, axes = plt.subplots(1, 2, figsize=(12, 5))
@@ -549,12 +529,10 @@ def plot_mean_median_grouped(df, categorical_var, target_variable, dataset_name,
     plt.show()
 
 
-# ✅ Define consistent age group labels
+# Define consistent age group labels
 age_groups_original = {"18 to 30": "18 to 30", "30 to 50": "30 to 50"}
 age_groups_perceived = {"18 to 30 years": "18 to 30", "30 to 50 years": "30 to 50", "> 50 years": "> 50"}
 
-# ✅ Generate Mean & Median Plots with Error Bars for Original Data
-plot_mean_median_grouped(df_original, "age group", "Acceptance_Score", "Original", age_groups_original)
-
-# ✅ Generate Mean & Median Plots with Error Bars for Perceived Data
-plot_mean_median_grouped(df_perceived, "age group", "Acceptance_Score", "Perceived", age_groups_perceived)
+# Generate Mean & Median Plots with Error Bars for Original Data and Perceived Data
+plot_mean_median_grouped(df_original, categorical_variable, target_variable, "Original", age_groups_original)
+plot_mean_median_grouped(df_perceived, categorical_variable, target_variable, "Perceived", age_groups_perceived)

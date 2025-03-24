@@ -1,5 +1,5 @@
+# This code is for analysis of effect of crash experience on adas (technology)
 
-import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 from utils import load_data, check_reliability, check_normality,calculate_acceptance_score, save_updated_data, compare_mean_median
@@ -175,11 +175,9 @@ def plot_crash_experience(df, categorical_var, target_variable, dataset_name):
     plt.show()
 
 
-# ✅ Generate Crash Experience Plots for Original Data
-plot_crash_experience(df_original, "Crash experience", "Acceptance_Score", "Original")
-
-# ✅ Generate Crash Experience Plots for Perceived Data
-plot_crash_experience(df_perceived, "Crash experience", "Acceptance_Score", "Perceived")
+# Generate Crash Experience Plots for Original Data and Perceived Data
+plot_crash_experience(df_original, categorical_variable, target_variable, "Original")
+plot_crash_experience(df_perceived, categorical_variable, target_variable, "Perceived")
 
 # visualization
 # fig, axes = plt.subplots(1, 2, figsize=(12, 5))

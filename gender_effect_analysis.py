@@ -1,5 +1,5 @@
+# This code is for analysis of effect of gender on adas (technology)
 
-import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 from utils import load_data, check_reliability, check_normality,calculate_acceptance_score, save_updated_data, compare_mean_median

@@ -1,5 +1,5 @@
+# This code is for analysis of effect of driving experience on adas (technology)
 
-import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 from utils import load_data, check_reliability, check_normality,calculate_acceptance_score, save_updated_data, compare_mean_median
@@ -182,15 +182,13 @@ def plot_driving_experience(df, categorical_var, target_variable, dataset_name, 
 
     plt.show()
 
-# ✅ Define consistent driving experience labels
+# Define consistent driving experience labels
 experience_groups_original = {"< 2 years": "< 2 years", "2 to 5 years": "2 to 5 years", "> 5 years": "> 5 years"}
 experience_groups_perceived = {"No experience": "No experience", "< 2 years": "< 2 years", "2 to 5 years": "2 to 5 years", "> 5 years": "> 5 years"}
 
-# ✅ Generate Driving Experience Plots for Original Data
-plot_driving_experience(df_original, "Driving experience in years", "Acceptance_Score", "Original", experience_groups_original)
-
-# ✅ Generate Driving Experience Plots for Perceived Data
-plot_driving_experience(df_perceived, "Driving experience in years", "Acceptance_Score", "Perceived", experience_groups_perceived)
+# Generate Driving Experience Plots for Original Data and Perceived Data
+plot_driving_experience(df_original, categorical_variable, target_variable, "Original", experience_groups_original)
+plot_driving_experience(df_perceived, categorical_variable, target_variable, "Perceived", experience_groups_perceived)
 
 
 # visualization
