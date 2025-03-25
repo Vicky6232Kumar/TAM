@@ -148,45 +148,45 @@ def plot_interaction_effect(df, cat1_var, cat2_var, target_var, dataset_name, pl
         print(f"\n❌ KeyError: {e}")
         print("🔹 Possible causes: Category missing or incorrectly formatted.")
 
-#this fucntion calculate the mean, median, std for categorial variables and their interaction(all possibility)
-# def compute_summary_stats(df, categorical_vars, target_variable):
-#     """
-#     Computes mean, median, and standard deviation for each categorical variable and their interaction.
+#this function calculate the mean, median, std for categorial variables and their interaction(all possibility)
+def compute_summary_stats_all_possibility(df, categorical_vars, target_variable):
+    """
+    Computes mean, median, and standard deviation for each categorical variable and their interaction.
 
-#     Parameters:
-#     - df (DataFrame): Dataset (original or perceived).
-#     - categorical_vars (list): List of categorical variables (e.g., ["Gender", "age group"]).
-#     - target_variable (str): The dependent variable (e.g., "Acceptance_Score").
+    Parameters:
+    - df (DataFrame): Dataset (original or perceived).
+    - categorical_vars (list): List of categorical variables (e.g., ["Gender", "age group"]).
+    - target_variable (str): The dependent variable (e.g., "Acceptance_Score").
 
-#     Returns:
-#     - DataFrame: Summary statistics for each categorical variable and their interaction.
-#     """
-#     summary_stats = {}
+    Returns:
+    - DataFrame: Summary statistics for each categorical variable and their interaction.
+    """
+    summary_stats = {}
 
-#     # Compute stats for each categorical variable
-#     for var in categorical_vars:
-#         summary_stats[var] = df.groupby(var)[target_variable].agg(
-#             mean="mean",
-#             median="median",
-#             std="std",
-#             count="count"
-#         ).reset_index()
+    # Compute stats for each categorical variable
+    for var in categorical_vars:
+        summary_stats[var] = df.groupby(var)[target_variable].agg(
+            mean="mean",
+            median="median",
+            std="std",
+            count="count"
+        ).reset_index()
     
-#     # Compute interaction effect
-#     interaction_var = f"{categorical_vars[0]} x {categorical_vars[1]}"
-#     df[interaction_var] = df[categorical_vars[0]].astype(str) + " & " + df[categorical_vars[1]].astype(str)
+    # Compute interaction effect
+    interaction_var = f"{categorical_vars[0]} x {categorical_vars[1]}"
+    df[interaction_var] = df[categorical_vars[0]].astype(str) + " & " + df[categorical_vars[1]].astype(str)
 
-#     summary_stats[interaction_var] = df.groupby(interaction_var)[target_variable].agg(
-#         mean="mean",
-#         median="median",
-#         std="std",
-#         count="count"
-#     ).reset_index()
+    summary_stats[interaction_var] = df.groupby(interaction_var)[target_variable].agg(
+        mean="mean",
+        median="median",
+        std="std",
+        count="count"
+    ).reset_index()
 
-#     return summary_stats
+    return summary_stats
 
 
-#this fucntion calculate the mean, median, std for categorial variables and their interaction(singled value)
+#this function calculate the mean, median, std for categorial variables and their interaction(singled value)
 def compute_summary_stats(df, categorical_vars, target_variable):
     """
     Computes mean, median, and standard deviation for each categorical variable 
@@ -206,6 +206,37 @@ def compute_summary_stats(df, categorical_vars, target_variable):
     # Compute stats for each categorical variable
     for var in categorical_vars:
         summary_stats[var] = df.groupby(var)[target_variable].agg(["mean", "median", "std"])
+
+    # Compute a single value for the interaction effect
+    interaction_grouped = df.groupby(categorical_vars)[target_variable].mean()  # Grouped means
+    interaction_mean = interaction_grouped.mean()   # Mean of grouped means
+    interaction_median = np.median(interaction_grouped)  # Median of grouped means
+    interaction_std = interaction_grouped.std()    # Standard deviation of grouped means
+
+    summary_stats["Interaction"] = {
+        "Mean": interaction_mean,
+        "Median": interaction_median,
+        "Std": interaction_std
+    }
+
+    return summary_stats
+
+
+#this function calculate the mean, median, std for categorial variables interaction(singled value)
+def compute_interaction_stats_only(df, categorical_vars, target_variable):
+    """
+    Computes mean, median, and standard deviation for categorial variables interaction (single values).
+
+    Parameters:
+    - df (DataFrame): Dataset (original or perceived).
+    - categorical_vars (list): List of categorical variables (e.g., ["Gender", "age group"]).
+    - target_variable (str): The dependent variable (e.g., "Acceptance_Score").
+
+    Returns:
+    - dict: Summary statistics containing mean, median, and std for each category 
+            and a single value for interaction.
+    """
+    summary_stats = {}
 
     # Compute a single value for the interaction effect
     interaction_grouped = df.groupby(categorical_vars)[target_variable].mean()  # Grouped means
