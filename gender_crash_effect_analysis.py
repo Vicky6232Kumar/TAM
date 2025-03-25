@@ -1,7 +1,7 @@
 # This code is for analysis for effect of interaction of gender and crash experience on technology(adas)
-
+import scikit_posthocs as sp
 from utils import (
-    load_data, check_reliability, check_normality, calculate_acceptance_score, save_updated_data, count_combinations, plot_interaction_effect, compute_summary_stats
+    load_data, check_reliability, check_normality, calculate_acceptance_score, save_updated_data, plot_interaction_effect, compute_interaction_stats_only, compute_summary_stats_all_possibility
 )
 from parametric_tests import two_way_anova
 from non_parametric_tests import art_anova
@@ -74,18 +74,41 @@ for test, p_val in p_values.items():
     else:
         print(f"{test}: {p_val} (Invalid result, check ANOVA output)")
 
+# Step 8: Perform Dunn’s Test for Pairwise Comparisons**
+def perform_dunn_test(df, dataset_name):
+    """
+    Performs Dunn’s Test with Bonferroni correction to check pairwise differences.
+    """
+    # Create a combined categorical variable for pairwise testing
+    df["Group"] = df["Gender"] + " - " + df["Crash experience"]
+
+    # Perform Dunn’s Test
+    dunn_results = sp.posthoc_dunn(df, val_col="Acceptance_Score", group_col="Group", p_adjust="bonferroni")
+
+    # Print Results
+    print(f"\n📊 **Dunn’s Test Results for {dataset_name} Data:**\n", dunn_results)
+
+    # Filter Significant Comparisons (p < 0.10)
+    significant_comparisons = dunn_results[dunn_results < 0.10]
+
+    print(f"\n📊 **Significant Pairwise Differences in {dataset_name}:**\n", significant_comparisons)
+
+    return dunn_results
+
+# Run Dunn’s Test for Perceived Data (Since it had significant interaction)
+dunn_perceived = perform_dunn_test(df_perceived, "Perceived")
 
 # Generate interaction effect plots
 plot_interaction_effect(df_original, categorical_vars[0], categorical_vars[1], target_variable, "Original", "original_interaction_gender_crash")
 plot_interaction_effect(df_perceived, categorical_vars[0], categorical_vars[1], target_variable, "Perceived", "perceived_interaction_gender_crash")
 
-# Count for Original Data and Percieved Data
-count_original = count_combinations(df_original, categorical_vars[0], categorical_vars[1], "Original")
-count_perceived = count_combinations(df_perceived, categorical_vars[0], categorical_vars[1], "Perceived")
+# Compute summary stats for both datasets
+summary_original = compute_summary_stats_all_possibility(df_original, categorical_vars, target_variable)
+summary_perceived = compute_summary_stats_all_possibility(df_perceived, categorical_vars, target_variable)
 
 # Compute summary stats for both datasets
-summary_original = compute_summary_stats(df_original, categorical_vars, target_variable)
-summary_perceived = compute_summary_stats(df_perceived, categorical_vars, target_variable)
+summary_interaction_original = compute_interaction_stats_only(df_original, categorical_vars, target_variable)
+summary_interaction_perceived = compute_interaction_stats_only(df_perceived, categorical_vars, target_variable)
 
 # Print Summary Stats
 print("\n📊 **Summary Statistics for Original Data:**")
@@ -96,13 +119,19 @@ for var, stats in summary_original.items():
     else:
         print(stats.to_string())
 
-print("\n📊 **Summary Statistics for Perceived Data:**")
+print("\n📊 **Interaction Single Valued**")
+print(f"Mean: {summary_interaction_original['Interaction']['Mean']:.2f}, Median: {summary_interaction_original['Interaction']['Median']:.2f}, Std: {summary_interaction_original['Interaction']['Std']:.2f}")
+
+print("\n🔹 **Summary Statistics for Perceived Data:**")
 for var, stats in summary_perceived.items():
     print(f"\n🔹 {var}:")
     if isinstance(stats, dict):  # Handling interaction effect separately
         print(f"   Mean: {stats['Mean']:.2f}, Median: {stats['Median']:.2f}, Std: {stats['Std']:.2f}")
     else:
         print(stats.to_string())
+
+print("\n🔹 **Interaction Single Valued**")
+print(f"Mean: {summary_interaction_perceived['Interaction']['Mean']:.2f}, Median: {summary_interaction_perceived['Interaction']['Median']:.2f}, Std: {summary_interaction_perceived['Interaction']['Std']:.2f}")
 
 # fig, axes = plt.subplots(2, 2, figsize=(12, 8))
 
