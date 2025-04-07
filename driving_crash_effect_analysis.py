@@ -1,14 +1,18 @@
 # This code is for analysis for effect of interaction of driving experience and crash experience on technology(adas)
 
 from utils import (
-    load_data, check_reliability, check_normality, calculate_acceptance_score, save_updated_data, count_combinations, plot_interaction_effect, compute_summary_stats
+    load_data, check_reliability, check_normality, calculate_acceptance_score, save_updated_data, compute_summary_stats_all_possibility, compute_interaction_stats_only,check_normality_on_filtered_data
 )
 from parametric_tests import two_way_anova
 from non_parametric_tests import art_anova
+from scipy.stats import mannwhitneyu, ttest_ind
 
 # Define Target & Categorical Variables
 target_variable = "Acceptance_Score"
 categorical_vars = ["Driving experience in years", "Crash experience"]
+
+driving_exp_categories = ["< 2 years","2 to 5 years", "> 5 years", "No experience"]
+crash_categories = ["Crash free", "Crash experienced"]
 
 #  Step 1: Load Data
 df_original, df_perceived = load_data("data sheet.xlsx")
@@ -69,17 +73,13 @@ for test, p_val in p_values.items():
         print(f"{test}: {p_val} (Invalid result, check ANOVA output)")
 
 
-# Generate interaction effect plots
-plot_interaction_effect(df_original, categorical_vars[0], categorical_vars[1],  target_variable, "Original", "original_interaction_driving_crash")
-plot_interaction_effect(df_perceived, categorical_vars[0], categorical_vars[1],  target_variable, "Perceived","perceived_interaction_driving_crash")
-
-# Count for Original Data and Percieved Data
-count_original = count_combinations(df_original, categorical_vars[0], categorical_vars[1], "Original")
-count_perceived = count_combinations(df_perceived, categorical_vars[0], categorical_vars[1], "Perceived")
+# Compute summary stats for both datasets
+summary_original = compute_summary_stats_all_possibility(df_original, categorical_vars, target_variable)
+summary_perceived = compute_summary_stats_all_possibility(df_perceived, categorical_vars, target_variable)
 
 # Compute summary stats for both datasets
-summary_original = compute_summary_stats(df_original, categorical_vars, target_variable)
-summary_perceived = compute_summary_stats(df_perceived, categorical_vars, target_variable)
+summary_interaction_original = compute_interaction_stats_only(df_original, categorical_vars, target_variable)
+summary_interaction_perceived = compute_interaction_stats_only(df_perceived, categorical_vars, target_variable)
 
 # Print Summary Stats
 print("\n📊 **Summary Statistics for Original Data:**")
@@ -90,10 +90,110 @@ for var, stats in summary_original.items():
     else:
         print(stats.to_string())
 
-print("\n📊 **Summary Statistics for Perceived Data:**")
+print("\n📊 **Interaction Single Valued**")
+print(f"Mean: {summary_interaction_original['Interaction']['Mean']:.2f}, Median: {summary_interaction_original['Interaction']['Median']:.2f}, Std: {summary_interaction_original['Interaction']['Std']:.2f}")
+
+print("\n🔹 **Summary Statistics for Perceived Data:**")
 for var, stats in summary_perceived.items():
     print(f"\n🔹 {var}:")
     if isinstance(stats, dict):  # Handling interaction effect separately
         print(f"   Mean: {stats['Mean']:.2f}, Median: {stats['Median']:.2f}, Std: {stats['Std']:.2f}")
     else:
         print(stats.to_string())
+
+print("\n🔹 **Interaction Single Valued**")
+print(f"Mean: {summary_interaction_perceived['Interaction']['Mean']:.2f}, Median: {summary_interaction_perceived['Interaction']['Median']:.2f}, Std: {summary_interaction_perceived['Interaction']['Std']:.2f}")
+
+# comparision of fot and percieved data
+
+# -----------------------------------------
+
+filter_original = df_original[(df_original[categorical_vars[0]] == driving_exp_categories[0]) & (df_original[categorical_vars[1]] == crash_categories[0])][target_variable]
+filter_perceived = df_perceived[(df_perceived[categorical_vars[0]] == driving_exp_categories[0]) & (df_perceived[categorical_vars[1]] ==  crash_categories[0])][target_variable]
+
+is_normal_interaction_original = check_normality_on_filtered_data(filter_original, "< 2yrs x Crash free Original")
+is_normal_interaction_perceived = check_normality_on_filtered_data(filter_perceived, "< 2yrs x Crash free Perceived")
+
+if is_normal_interaction_original and is_normal_interaction_perceived:
+    t_stat, p_value = ttest_ind(filter_original, filter_perceived)
+    print(f"t-test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(filter_original, filter_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+
+# --------------------------
+
+filter_original = df_original[(df_original[categorical_vars[0]] == driving_exp_categories[0]) & (df_original[categorical_vars[1]] == crash_categories[1])][target_variable]
+filter_perceived = df_perceived[(df_perceived[categorical_vars[0]] == driving_exp_categories[0]) & (df_perceived[categorical_vars[1]] ==  crash_categories[1])][target_variable]
+
+is_normal_interaction_original = check_normality_on_filtered_data(filter_original, "< 2yrs x Crash experienced Original")
+is_normal_interaction_perceived = check_normality_on_filtered_data(filter_perceived, "< 2yrs x Crash experienced Perceived")
+
+if is_normal_interaction_original and is_normal_interaction_perceived:
+    t_stat, p_value = ttest_ind(filter_original, filter_perceived)
+    print(f"t-test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(filter_original, filter_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+
+
+# ----------------------------------------
+
+filter_original = df_original[(df_original[categorical_vars[0]] == driving_exp_categories[1]) & (df_original[categorical_vars[1]] == crash_categories[0])][target_variable]
+filter_perceived = df_perceived[(df_perceived[categorical_vars[0]] == driving_exp_categories[1]) & (df_perceived[categorical_vars[1]] ==  crash_categories[0])][target_variable]
+
+is_normal_interaction_original = check_normality_on_filtered_data(filter_original, "2 to 5 yrs x Crash free Original")
+is_normal_interaction_perceived = check_normality_on_filtered_data(filter_perceived, "2 to 5 yrs x Crash free Perceived")
+
+if is_normal_interaction_original and is_normal_interaction_perceived:
+    t_stat, p_value = ttest_ind(filter_original, filter_perceived)
+    print(f"t-test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(filter_original, filter_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+
+# --------------------------
+
+filter_original = df_original[(df_original[categorical_vars[0]] == driving_exp_categories[1]) & (df_original[categorical_vars[1]] == crash_categories[1])][target_variable]
+filter_perceived = df_perceived[(df_perceived[categorical_vars[0]] == driving_exp_categories[1]) & (df_perceived[categorical_vars[1]] ==  crash_categories[1])][target_variable]
+
+is_normal_interaction_original = check_normality_on_filtered_data(filter_original, "2 to 5 yrs x Crash experienced Original")
+is_normal_interaction_perceived = check_normality_on_filtered_data(filter_perceived, "2 to 5 yrs x Crash experienced Perceived")
+
+if is_normal_interaction_original and is_normal_interaction_perceived:
+    t_stat, p_value = ttest_ind(filter_original, filter_perceived)
+    print(f"t-test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(filter_original, filter_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+
+
+# --------------------------------------------
+
+filter_original = df_original[(df_original[categorical_vars[0]] == driving_exp_categories[2]) & (df_original[categorical_vars[1]] == crash_categories[0])][target_variable]
+filter_perceived = df_perceived[(df_perceived[categorical_vars[0]] == driving_exp_categories[2]) & (df_perceived[categorical_vars[1]] ==  crash_categories[0])][target_variable]
+
+is_normal_interaction_original = check_normality_on_filtered_data(filter_original, "> 5 yrs x Crash free Original")
+is_normal_interaction_perceived = check_normality_on_filtered_data(filter_perceived, "> 5 yrs x Crash free Perceived")
+
+if is_normal_interaction_original and is_normal_interaction_perceived:
+    t_stat, p_value = ttest_ind(filter_original, filter_perceived)
+    print(f"t-test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(filter_original, filter_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+
+# --------------------------
+
+filter_original = df_original[(df_original[categorical_vars[0]] == driving_exp_categories[2]) & (df_original[categorical_vars[1]] == crash_categories[1])][target_variable]
+filter_perceived = df_perceived[(df_perceived[categorical_vars[0]] == driving_exp_categories[2]) & (df_perceived[categorical_vars[1]] ==  crash_categories[1])][target_variable]
+
+is_normal_interaction_original = check_normality_on_filtered_data(filter_original, "> 5 yrs x Crash experienced Original")
+is_normal_interaction_perceived = check_normality_on_filtered_data(filter_perceived, "> 5 yrs x Crash experienced Perceived")
+
+if is_normal_interaction_original and is_normal_interaction_perceived:
+    t_stat, p_value = ttest_ind(filter_original, filter_perceived)
+    print(f"t-test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(filter_original, filter_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
