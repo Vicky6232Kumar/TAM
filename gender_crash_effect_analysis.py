@@ -1,14 +1,18 @@
 # This code is for analysis for effect of interaction of gender and crash experience on technology(adas)
 import scikit_posthocs as sp
 from utils import (
-    load_data, check_reliability, check_normality, calculate_acceptance_score, save_updated_data, plot_interaction_effect, compute_interaction_stats_only, compute_summary_stats_all_possibility
+    load_data, check_reliability, check_normality, calculate_acceptance_score, save_updated_data, plot_interaction_effect, compute_interaction_stats_only, compute_summary_stats_all_possibility, check_normality_on_filtered_data
 )
 from parametric_tests import two_way_anova
 from non_parametric_tests import art_anova
+from scipy.stats import ttest_ind, mannwhitneyu
 
 # Define Target & Categorical Variables
 target_variable = "Acceptance_Score"
 categorical_vars = ["Gender", "Crash experience"]  # Standardized column name
+
+gender_categories = ["Female", "Male"]
+crash_categories = ["Crash free", "Crash experienced"]
 
 #  Step 1: Load Data
 df_original, df_perceived = load_data("data sheet.xlsx")
@@ -152,3 +156,90 @@ print(f"Mean: {summary_interaction_perceived['Interaction']['Mean']:.2f}, Median
 # plt.tight_layout()
 # plt.savefig("plot/age_gender_effect_plot.png")
 # print("\n✅ Plot saved as 'plot/age_gender_effect_plot.png'")
+
+
+# # Load the Excel file
+# file_path = "female_crash_free.xlsx"  # Replace with your actual file path
+# df_testing = pd.read_excel(file_path)
+
+# p_val_testing = {}
+# p_val_testing["Aligned Ranked Transformation (Perceived)"] = art_anova(df_testing, categorical_vars, target_variable, "Perceived")
+
+# print("\n📊 **P-Value for female - crash freeResults Summary:**")
+# for test, p_val in p_val_testing.items():
+#     if isinstance(p_val, (int, float)):  # Ensures it's a number before formatting
+#         print(f"{test}: p = {p_val:.5f} {'✅ Significant' if p_val < 0.1 else '❌ Not Significant'}")
+#     else:
+#         print(f"{test}: {p_val} (Invalid result, check ANOVA output)")
+
+# Filter for females with "crash free" experience
+# filtered_df = df[(df["Gender"] == "Female") & (df["Crash experience"] == "Crash free")][["Gender", "Crash experience", "Acceptance_Score"]]
+
+# # Save the filtered data to a new Excel file
+# filtered_file_path = "female_crash_free.xlsx"
+# filtered_df.to_excel(filtered_file_path, index=False)
+
+# print(f"Filtered data saved to {filtered_file_path}")
+
+
+# comparision of fot and percieved data
+
+# -------------------------------------
+
+filter_original = df_original[(df_original[categorical_vars[0]] == gender_categories[0]) & (df_original[categorical_vars[1]] == crash_categories[0])][target_variable]
+filter_perceived = df_perceived[(df_perceived[categorical_vars[0]] == gender_categories[0]) & (df_perceived[categorical_vars[1]] == crash_categories[0])][target_variable]
+
+is_normal_interaction_original = check_normality_on_filtered_data(filter_original, "Female x Crash free Original")
+is_normal_interaction_perceived = check_normality_on_filtered_data(filter_perceived, "Female x Crash free Perceived")
+
+if is_normal_interaction_original and is_normal_interaction_perceived:
+    t_stat, p_value = ttest_ind(filter_original, filter_perceived)
+    print(f"t-test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(filter_original, filter_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+
+#-----------------
+
+filter_original = df_original[(df_original[categorical_vars[0]] == gender_categories[0]) & (df_original[categorical_vars[1]] == crash_categories[1])][target_variable]
+filter_perceived = df_perceived[(df_perceived[categorical_vars[0]] == gender_categories[0]) & (df_perceived[categorical_vars[1]] == crash_categories[1])][target_variable]
+
+is_normal_interaction_original = check_normality_on_filtered_data(filter_original, "Female x Crash experienced Original")
+is_normal_interaction_perceived = check_normality_on_filtered_data(filter_perceived, "Female x Crash experienced Perceived")
+
+if is_normal_interaction_original and is_normal_interaction_perceived:
+    t_stat, p_value = ttest_ind(filter_original, filter_perceived)
+    print(f"t-test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(filter_original, filter_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+
+# ---------------------------------------------
+
+filter_original = df_original[(df_original[categorical_vars[0]] == gender_categories[1]) & (df_original[categorical_vars[1]] == crash_categories[0])][target_variable]
+filter_perceived = df_perceived[(df_perceived[categorical_vars[0]] == gender_categories[1]) & (df_perceived[categorical_vars[1]] == crash_categories[0])][target_variable]
+
+is_normal_interaction_original = check_normality_on_filtered_data(filter_original, "Male x Crash free Original")
+is_normal_interaction_perceived = check_normality_on_filtered_data(filter_perceived, "Male x Crash free Perceived")
+
+if is_normal_interaction_original and is_normal_interaction_perceived:
+    t_stat, p_value = ttest_ind(filter_original, filter_perceived)
+    print(f"t-test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(filter_original, filter_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+
+#-----------------
+
+filter_original = df_original[(df_original[categorical_vars[0]] == gender_categories[1]) & (df_original[categorical_vars[1]] == crash_categories[1])][target_variable]
+filter_perceived = df_perceived[(df_perceived[categorical_vars[0]] == gender_categories[1]) & (df_perceived[categorical_vars[1]] == crash_categories[1])][target_variable]
+
+is_normal_interaction_original = check_normality_on_filtered_data(filter_original, "Male x Crash experienced Original")
+is_normal_interaction_perceived = check_normality_on_filtered_data(filter_perceived, "Male x Crash experienced Perceived")
+
+if is_normal_interaction_original and is_normal_interaction_perceived:
+    t_stat, p_value = ttest_ind(filter_original, filter_perceived)
+    print(f"t-test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(filter_original, filter_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test : p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
