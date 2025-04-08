@@ -2,9 +2,10 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from utils import load_data, check_reliability, check_normality,calculate_acceptance_score, save_updated_data, compare_mean_median
+from utils import load_data, check_reliability, check_normality,calculate_acceptance_score, save_updated_data, compare_mean_median, check_normality_on_filtered_data
 from parametric_tests import one_way_anova, ind_t_test
 from non_parametric_tests import kruskal_wallis, mann_whitney_u_test
+from scipy.stats import mannwhitneyu, ttest_ind
 
 # Define target variable
 target_variable = "Acceptance_Score"
@@ -536,3 +537,29 @@ age_groups_perceived = {"18 to 30 years": "18 to 30", "30 to 50 years": "30 to 5
 # Generate Mean & Median Plots with Error Bars for Original Data and Perceived Data
 plot_mean_median_grouped(df_original, categorical_variable, target_variable, "Original", age_groups_original)
 plot_mean_median_grouped(df_perceived, categorical_variable, target_variable, "Perceived", age_groups_perceived)
+
+age_18_30_original = df_original[df_original["age group"] == "18 to 30"][target_variable]
+age_18_30_perceived = df_perceived[df_perceived["age group"] == "18 to 30 years"][target_variable]
+
+is_normal_age_18_30_original = check_normality_on_filtered_data(age_18_30_original, "18 to 30 original")
+is_normal_age_18_30_perceived = check_normality_on_filtered_data(age_18_30_perceived, "18 to 30 Perceived")
+
+if is_normal_age_18_30_original and is_normal_age_18_30_perceived:
+    t_stat, p_value = ttest_ind(age_18_30_original, age_18_30_perceived)
+    print(f"t-test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(age_18_30_original, age_18_30_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+
+age_30_50_original = df_original[df_original["age group"] == "30 to 50"][target_variable]
+age_30_50_perceived = df_perceived[df_perceived["age group"] == "30 to 50 years"][target_variable]
+
+is_normal_age_30_50_original = check_normality_on_filtered_data(age_30_50_original, "30 to 50 Original")
+is_normal_age_30_50_perceived = check_normality_on_filtered_data(age_30_50_perceived, "30 to 50 Perceived")
+
+if is_normal_age_30_50_original and is_normal_age_30_50_perceived:
+    t_stat, p_value = ttest_ind(age_30_50_original, age_30_50_perceived)
+    print(f"t-test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(age_30_50_original, age_30_50_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")

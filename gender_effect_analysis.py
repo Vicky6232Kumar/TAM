@@ -5,6 +5,7 @@ import numpy as np
 from utils import load_data, check_reliability, check_normality,calculate_acceptance_score, save_updated_data, compare_mean_median
 from parametric_tests import ind_t_test
 from non_parametric_tests import mann_whitney_u_test
+from scipy.stats import mannwhitneyu, ttest_ind
 
 # Define target variable
 target_variable = "Acceptance_Score"
@@ -231,3 +232,29 @@ def plot_mean_median_with_error_bars(df, categorical_var, target_variable, datas
 # ✅ Generate updated Mean & Median Plots with Error Bars and Annotations
 plot_mean_median_with_error_bars(df_original, categorical_variable, target_variable, "Original")
 plot_mean_median_with_error_bars(df_perceived, categorical_variable, target_variable, "Perceived")
+
+male_original = df_original[df_original["Gender"] == "Male"][target_variable]
+male_perceived = df_perceived[df_perceived["Gender"] == "Male"][target_variable]
+
+is_normal_male_original = check_normality(df_original[df_original["Gender"] == "Male"], target_variable, "Male Original")
+is_normal_male_perceived = check_normality(df_perceived[df_perceived["Gender"] == "Male"], target_variable, "Male Perceived")
+
+if is_normal_male_original and is_normal_male_perceived:
+    t_stat, p_value = ttest_ind(male_original, male_perceived)
+    print(f"t-test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(male_original, male_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+
+female_original = df_original[df_original["Gender"] == "Female"][target_variable]
+female_perceived = df_perceived[df_perceived["Gender"] == "Female"][target_variable]
+
+is_normal_female_original = check_normality(female_original, target_variable, "Female Original")
+is_normal_female_perceived = check_normality(female_perceived, target_variable, "Female Perceived")
+
+if is_normal_female_original and is_normal_female_perceived:
+    t_stat, p_value = ttest_ind(female_original, female_perceived)
+    print(f"t-test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(female_original, female_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")

@@ -2,9 +2,10 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-from utils import load_data, check_reliability, check_normality,calculate_acceptance_score, save_updated_data, compare_mean_median
+from utils import load_data, check_reliability, check_normality,calculate_acceptance_score, save_updated_data, compare_mean_median, check_normality_on_filtered_data
 from parametric_tests import one_way_anova
 from non_parametric_tests import kruskal_wallis
+from scipy.stats import mannwhitneyu, ttest_ind
 
 # Define target variable
 target_variable = "Acceptance_Score"
@@ -204,3 +205,44 @@ plot_driving_experience(df_perceived, categorical_variable, target_variable, "Pe
 
 # plt.savefig("plot/driving_experience_effect_plot.png")
 # print("\n✅ Plot saved as 'plot/driving_experience_effect_plot.png'")
+
+driving_original = df_original[df_original[categorical_variable] == "< 2 years"][target_variable]
+driving_perceived = df_perceived[df_perceived[categorical_variable] == "< 2 years"][target_variable]
+
+is_normal_driving_original = check_normality_on_filtered_data(driving_original, "< 2 years original")
+is_normal_driving_perceived = check_normality_on_filtered_data(driving_perceived, "<2 years Perceived")
+
+if is_normal_driving_original and is_normal_driving_perceived:
+    t_stat, p_value = ttest_ind(driving_original, driving_perceived)
+    print(f"t-test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(driving_original, driving_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+
+
+driving_original = df_original[df_original[categorical_variable] == "2 to 5 years"][target_variable]
+driving_perceived = df_perceived[df_perceived[categorical_variable] == "2 to 5 years"][target_variable]
+
+is_normal_driving_original = check_normality_on_filtered_data(driving_original, "2 to 5 years original")
+is_normal_driving_perceived = check_normality_on_filtered_data(driving_perceived, "2 to 5 years Perceived")
+
+if is_normal_driving_original and is_normal_driving_perceived:
+    t_stat, p_value = ttest_ind(driving_original, driving_perceived)
+    print(f"t-test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(driving_original, driving_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+
+
+driving_original = df_original[df_original[categorical_variable] == "> 5 years"][target_variable]
+driving_perceived = df_perceived[df_perceived[categorical_variable] == "> 5 years"][target_variable]
+
+is_normal_driving_original = check_normality_on_filtered_data(driving_original, "> 5 years original")
+is_normal_driving_perceived = check_normality_on_filtered_data(driving_perceived, "> 5 years Perceived")
+
+if is_normal_driving_original and is_normal_driving_perceived:
+    t_stat, p_value = ttest_ind(driving_original, driving_perceived)
+    print(f"t-test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(driving_original, driving_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")

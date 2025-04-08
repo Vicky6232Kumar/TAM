@@ -2,9 +2,10 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-from utils import load_data, check_reliability, check_normality,calculate_acceptance_score, save_updated_data, compare_mean_median
+from utils import load_data, check_reliability, check_normality,calculate_acceptance_score, save_updated_data, compare_mean_median, check_normality_on_filtered_data
 from parametric_tests import one_way_anova, ind_t_test
 from non_parametric_tests import kruskal_wallis, mann_whitney_u_test
+from scipy.stats import mannwhitneyu, ttest_ind
 
 # Define target variable
 target_variable = "Acceptance_Score"
@@ -204,3 +205,33 @@ plot_driver_education(df_perceived, categorical_variable, target_variable, "Perc
 
 # plt.savefig("plot/education_effect_plot.png")
 # print("\n✅ Plot saved as 'plot/education_effect_plot.png'")
+
+
+edu_original = df_original[df_original[categorical_variable] == "Bachelor's degree"][target_variable]
+edu_perceived = df_perceived[df_perceived[categorical_variable] == "Bachelor's degree"][target_variable]
+
+is_normal_edu_original = check_normality_on_filtered_data(edu_original, "Bachelor's degree original")
+is_normal_edu_perceived = check_normality_on_filtered_data(edu_perceived, "Bachelor's degree Perceived")
+
+if is_normal_edu_original and is_normal_edu_perceived:
+    t_stat, p_value = ttest_ind(edu_original, edu_perceived)
+    print(f"t-test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(edu_original, edu_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+
+
+
+edu_original = df_original[df_original[categorical_variable] == "> Bachelor's degree"][target_variable]
+edu_perceived = df_perceived[df_perceived[categorical_variable] == "> Bachelor's degree"][target_variable]
+
+is_normal_edu_original = check_normality_on_filtered_data(edu_original, "> Bachelor's degree original")
+is_normal_edu_perceived = check_normality_on_filtered_data(edu_perceived, "> Bachelor's degree Perceived")
+
+if is_normal_edu_original and is_normal_edu_perceived:
+    t_stat, p_value = ttest_ind(edu_original, edu_perceived)
+    print(f"t-test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(edu_original, edu_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+

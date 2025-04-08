@@ -2,13 +2,16 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-from utils import load_data, check_reliability, check_normality,calculate_acceptance_score, save_updated_data, compare_mean_median
+from utils import load_data, check_reliability, check_normality,calculate_acceptance_score, save_updated_data, compare_mean_median, check_normality_on_filtered_data
 from parametric_tests import ind_t_test
 from non_parametric_tests import  mann_whitney_u_test
+from scipy.stats import mannwhitneyu, ttest_ind
 
 # Define target variable
 target_variable = "Acceptance_Score"
 categorical_variable = "Crash experience"
+# Define crash experience categories
+crash_categories = ["Crash free", "Crash experienced"]
 
 
 # Step 1 - load Original & Perceived Data
@@ -95,9 +98,6 @@ def plot_crash_experience(df, categorical_var, target_variable, dataset_name):
 
     # Compute IQR (Interquartile Range) for Median
     summary_stats["iqr"] = summary_stats["q3"] - summary_stats["q1"]
-
-    # Define crash experience categories
-    crash_categories = ["Crash free", "Crash experienced"]
 
     # Extract values
     mean_values = summary_stats.loc[crash_categories, "mean"].tolist()
@@ -192,3 +192,31 @@ plot_crash_experience(df_perceived, categorical_variable, target_variable, "Perc
 
 # plt.savefig("plot/crash_experience_effect_plot.png")
 # print("\n✅ Plot saved as 'plot/crash_experience_effect_plot.png'")
+
+
+crash_original = df_original[df_original[categorical_variable] == crash_categories[0]][target_variable]
+crash_perceived = df_perceived[df_perceived[categorical_variable] == crash_categories[0]][target_variable]
+
+is_normal_crash_original = check_normality_on_filtered_data(crash_original, "Crash free original")
+is_normal_crash_perceived = check_normality_on_filtered_data(crash_perceived, "Crash free perceived")
+
+if is_normal_crash_original and is_normal_crash_perceived:
+    t_stat, p_value = ttest_ind(crash_original, crash_perceived)
+    print(f"t-test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(crash_original, crash_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+
+
+crash_original = df_original[df_original[categorical_variable] == crash_categories[1]][target_variable]
+crash_perceived = df_perceived[df_perceived[categorical_variable] == crash_categories[1]][target_variable]
+
+is_normal_crash_original = check_normality_on_filtered_data(crash_original, "Crash free original")
+is_normal_crash_perceived = check_normality_on_filtered_data(crash_perceived, "Crash free perceived")
+
+if is_normal_crash_original and is_normal_crash_perceived:
+    t_stat, p_value = ttest_ind(crash_original, crash_perceived)
+    print(f"t-test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
+else:
+    u_stat, p_value = mannwhitneyu(crash_original, crash_perceived, alternative='two-sided')
+    print(f"Mann-Whitney U Test: p = {p_value:.5f} {'✅ Significant' if p_value < 0.10 else '❌ Not Significant'}")
