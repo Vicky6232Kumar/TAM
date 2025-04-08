@@ -51,7 +51,35 @@ def check_normality(data, column, dataset_name):
         test_used = "Kolmogorov-Smirnov"
 
     print(f"✅ {test_used} Test for Normality on {column} column in {dataset_name} data: p = {p:.3f} -> {'Normal' if p > 0.1 else 'Not Normal'}")
-    return p > 0.05  # Returns True if data is normal
+    return p > 0.1  # Returns True if data is normal
+
+# check normality on the filtered data
+def check_normality_on_filtered_data(data, dataset_name):
+    """
+    Checks if the data follows a normal distribution.
+    
+    Parameters:
+    - data (pd.Series): Target variable values.
+    - dataset_name (str): Name for reporting.
+
+    Returns:
+    - bool: True if data is normally distributed, False otherwise.
+    """
+    if len(data) < 3:  # Too small to test normality
+        print(f"⚠️ Skipping normality test for {dataset_name} (sample too small: n={len(data)})")
+        return False
+
+    if len(data) < 50:
+        stat, p = stats.shapiro(data)  # Shapiro-Wilk for small samples
+        test_used = "Shapiro-Wilk"
+    else:
+        mean = np.mean(data)
+        std = np.std(data, ddof=1)  # Sample standard deviation
+        stat, p = stats.kstest(data, 'norm', args=(mean, std))  # KS Test for large samples
+        test_used = "Kolmogorov-Smirnov"
+    
+    print(f"✅ {test_used} Test for Normality in {dataset_name}: p = {p:.3f} -> {'Normal' if p > 0.10 else 'Not Normal'}")
+    return p > 0.10  # Returns True if data is normal
 
 # Save updated data back to an Excel file
 def save_updated_data(df_original, df_perceived, file_name="updated_data.xlsx"):
